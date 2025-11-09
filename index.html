@@ -2,25 +2,21 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover">
-
-  <!-- PWA / iOS -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="theme-color" content="#10b981">
 
   <title>Carômetro Prefeituras</title>
 
-  <!-- Manifesto + ícone iOS -->
+  <!-- PWA -->
   <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b0f12">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 
-  <!-- CSS global -->
+  <!-- Estilos -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- Chart.js -->
+  <!-- Charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -29,52 +25,40 @@
     <button id="btnInstall" hidden>Instalar</button>
   </header>
 
-  <!-- =========================
-       HERO com arte + busca
-       ========================= -->
-  <section class="hero">
-    <div class="hero-inner">
-      <form class="search" id="searchForm" onsubmit="return false;">
-        <label for="municipio">Município</label>
-
-        <input id="municipio"
-               list="municipios"
-               placeholder="Digite e selecione…"
-               autocomplete="off" />
-
-        <datalist id="municipios"></datalist>
-
-        <button id="btnBuscar" type="button">BUSCAR</button>
-      </form>
-
-      <p class="tagline">
-        Recursos enviados do Senador Marcos do Val para o Estado do Espírito Santo
-      </p>
-    </div>
-  </section>
-
   <main>
-    <section id="card">
-      <div class="card-left">
-        <img id="fotoPrefeito" alt="Foto do prefeito" />
-      </div>
 
-      <div class="card-right">
-        <h2 id="nomePrefeito">Selecione um município</h2>
-
-        <p><strong>Partido:</strong> <span id="partido"></span></p>
-        <p><strong>Mandato:</strong> <span id="mandato"></span></p>
-        <p><strong>Vice:</strong> <span id="vice"></span></p>
-
-        <div class="contatos">
-          <p><strong>Gabinete:</strong>  <span id="gabinete"></span></p>
-          <p><strong>Prefeitura:</strong> <span id="prefeitura"></span></p>
-          <p><strong>Email:</strong>     <span id="email"></span></p>
-          <p><strong>Celular:</strong>   <span id="celular"></span></p>
+    <!-- HERO com a arte ao fundo + busca no topo -->
+    <section class="hero">
+      <div class="hero-overlay">
+        <div class="search">
+          <label for="municipio">Município</label>
+          <input id="municipio" list="municipios" placeholder="Digite e selecione…">
+          <datalist id="municipios"></datalist>
+          <button id="btnBuscar">BUSCAR</button>
         </div>
       </div>
     </section>
 
+    <!-- Cartão do prefeito -->
+    <section id="card">
+      <div class="card-left">
+        <img id="fotoPrefeito" alt="Foto do prefeito" />
+      </div>
+      <div class="card-right">
+        <h2 id="nomePrefeito">Selecione um município</h2>
+        <p><strong>Partido:</strong> <span id="partido"></span></p>
+        <p><strong>Mandato:</strong> <span id="mandato"></span></p>
+        <p><strong>Vice:</strong> <span id="vice"></span></p>
+        <div class="contatos">
+          <p><strong>Gabinete:</strong> <span id="gabinete"></span></p>
+          <p><strong>Prefeitura:</strong> <span id="prefeitura"></span></p>
+          <p><strong>Email:</strong> <span id="email"></span></p>
+          <p><strong>Celular:</strong> <span id="celular"></span></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Totais -->
     <section class="totais">
       <div class="tot"><span>Destinado</span><strong id="tDestinado">R$ 0</strong></div>
       <div class="tot"><span>Empenhado</span><strong id="tEmpenhado">R$ 0</strong></div>
@@ -82,6 +66,7 @@
       <div class="tot"><span>Saldo</span><strong id="tSaldo">R$ 0</strong></div>
     </section>
 
+    <!-- Gráficos -->
     <section class="charts">
       <div class="chart-wrap">
         <h3>Por Macro-área</h3>
@@ -93,12 +78,14 @@
       </div>
     </section>
 
+    <!-- Filtros -->
     <section class="filters">
       <select id="fAno"><option value="">Ano (todos)</option></select>
       <select id="fTipo"><option value="">Tipo (todos)</option></select>
       <select id="fSit"><option value="">Situação (todas)</option></select>
     </section>
 
+    <!-- Tabela -->
     <section class="table">
       <table>
         <thead>
@@ -112,6 +99,7 @@
       </table>
     </section>
 
+    <!-- Exportar -->
     <section class="export">
       <button id="btnPDF">Exportar PDF</button>
     </section>
