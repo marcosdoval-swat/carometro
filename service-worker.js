@@ -1,5 +1,5 @@
 // service-worker.js — Carômetro (v30)
-const CACHE_NAME = 'carometro-cache-v30';
+const CACHE_NAME = 'carometro-cache-v31';
 
 // Itens essenciais para offline (núcleo do app)
 const CORE_ASSETS = [
