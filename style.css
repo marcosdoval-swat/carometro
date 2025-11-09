@@ -3,8 +3,12 @@
   --card:#12181d;
   --text:#e5e7eb;
   --muted:#94a3b8;
-  --accent:#10b981;
+  --accent:#10b981;   /* verde do tema para outros elementos */
   --table:#0f1418;
+
+  /* Azul claro específico da busca */
+  --search-blue:#0ea5ff;             /* cor do botão/contorno */
+  --search-glow:rgba(14,165,255,.28);/* brilho do foco/realce */
 }
 
 *{ box-sizing:border-box; }
@@ -157,41 +161,52 @@ thead th{
 }
 
 /* =======================================================
-   Destaque do campo "Município" e do botão "Buscar"
+   Destaque PERMANENTE do campo "Município" e botão "BUSCAR"
    ======================================================= */
+
+/* Campo Município sempre com borda azul clara e brilho */
 #municipio{
+  min-width:300px;
   height:56px;
-  font-size:16px;                /* evita zoom no iOS */
-  border-width:2px;
-  border-color:#1c2b25;
-  padding:0 14px;
-  transition:box-shadow .2s, border-color .2s;
-}
-#municipio::placeholder{ color:#8fb9a9; }
-#municipio:focus{
+  font-size:16px;                 /* evita zoom no iOS */
+  font-weight:600;
+  color:var(--text);
+  background:#0c1216;
+  border:2px solid var(--search-blue);   /* contorno AZUL permanente */
+  border-radius:14px;
+  box-shadow:0 0 0 3px var(--search-glow); /* brilho constante */
+  -webkit-appearance:none;
   outline:none;
-  border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(16,185,129,.28);
+  padding:0 14px;
+}
+#municipio::placeholder{ color:#9bb4c6; }
+#municipio:focus{
+  box-shadow:0 0 0 4px rgba(14,165,255,.38);  /* foco levemente mais forte */
 }
 
+/* Botão BUSCAR todo azul claro, permanente */
 #btnBuscar{
   height:56px;
-  padding:0 18px;
-  font-weight:700;
-  border-width:2px;
-  border-color:var(--accent);
-  background:var(--accent);
-  color:#0b0f12;
-  box-shadow:0 6px 18px rgba(16,185,129,.28);
-  transition:transform .05s, box-shadow .2s;
+  padding:0 22px;
+  font-size:16px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+  background:var(--search-blue);         /* fundo AZUL permanente */
+  color:#061319;
+  border:2px solid var(--search-blue);
+  border-radius:14px;
+  box-shadow:0 8px 22px rgba(14,165,255,.35);
+  transition:transform .06s, box-shadow .2s, filter .2s;
 }
 #btnBuscar:hover{
+  filter:brightness(1.06);
   transform:translateY(-1px);
-  box-shadow:0 8px 22px rgba(16,185,129,.35);
+  box-shadow:0 10px 26px rgba(14,165,255,.42);
 }
 #btnBuscar:active{
   transform:translateY(0);
-  box-shadow:0 4px 12px rgba(16,185,129,.18);
+  box-shadow:0 6px 18px rgba(14,165,255,.22);
 }
 
 /* =======================================================
