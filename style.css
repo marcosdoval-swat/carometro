@@ -157,19 +157,54 @@ thead th{
 }
 
 /* =======================================================
-   Overrides específicos da foto/logo do prefeito
-   (Ficam por último para prevalecer sobre as regras acima)
+   Destaque do campo "Município" e do botão "Buscar"
+   ======================================================= */
+#municipio{
+  height:56px;
+  font-size:16px;                /* evita zoom no iOS */
+  border-width:2px;
+  border-color:#1c2b25;
+  padding:0 14px;
+  transition:box-shadow .2s, border-color .2s;
+}
+#municipio::placeholder{ color:#8fb9a9; }
+#municipio:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(16,185,129,.28);
+}
+
+#btnBuscar{
+  height:56px;
+  padding:0 18px;
+  font-weight:700;
+  border-width:2px;
+  border-color:var(--accent);
+  background:var(--accent);
+  color:#0b0f12;
+  box-shadow:0 6px 18px rgba(16,185,129,.28);
+  transition:transform .05s, box-shadow .2s;
+}
+#btnBuscar:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 22px rgba(16,185,129,.35);
+}
+#btnBuscar:active{
+  transform:translateY(0);
+  box-shadow:0 4px 12px rgba(16,185,129,.18);
+}
+
+/* =======================================================
+   Overrides da foto/logo do prefeito (sem “quadro”)
    ======================================================= */
 #fotoPrefeito{
-  background:transparent !important;  /* sem “quadro” atrás */
-  border:0 !important;                /* remove a borda */
+  background:transparent !important;
+  border:0 !important;
 }
-
-/* Quando o fallback usar a sua LOGO, exiba-a inteira */
+/* Quando cair no fallback (sua logo), não recorta */
 #fotoPrefeito[src*="icons/icon-512.png"]{
-  object-fit:contain !important;      /* não recorta a logo */
+  object-fit:contain !important;
 }
-
-/* (Opcional) Para destacar mais a imagem, descomente:
+/* (Opcional) Aumentar imagem no card:
 #fotoPrefeito{ width:260px; height:260px; border-radius:16px; }
 */
