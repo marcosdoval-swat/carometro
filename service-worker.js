@@ -1,56 +1,83 @@
 // service-worker.js — Carômetro
-// v6: força atualização + cache dinâmico das fotos dos prefeitos
+const CACHE_NAME = 'carometro-cache-v26'; // << aumente quando alterar assets
 
-const CACHE_NAME = 'carometro-cache-v25';
+// Itens essenciais para offline
 const CORE_ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
-  './manifest.json',
   './carometro_normalizado.json',
-  './icons/icon-512.png'
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/apple-touch-icon.png'
 ];
 
-// Instalação: faz cache dos arquivos centrais
-self.addEventListener('install', (event) => {
+// Instalação: pré-cache básico
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// Ativação: remove versões antigas do cache
-self.addEventListener('activate', (event) => {
+// Ativação: limpa caches antigos
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    caches.keys().then(keys =>
+      Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch
-self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-  const isFotoPrefeito = url.pathname.includes('/prefeitos/') && url.pathname.endsWith('.jpg');
+// Estratégias de busca
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  const url = new URL(req.url);
 
-  // Fotos: rede primeiro (para pegar nova imagem), salvando no cache; se falhar, usa cache
-  if (isFotoPrefeito) {
-    event.respondWith(
-      fetch(event.request)
-        .then((resp) => {
-          const copy = resp.clone();
-          caches.open(CACHE_NAME).then((c) => c.put(event.request, copy));
-          return resp;
-        })
-        .catch(() => caches.match(event.request))
-    );
+  // Apenas GET
+  if (req.method !== 'GET') return;
+
+  // JSON: network-first (para sempre ter dados novos)
+  if (url.pathname.endsWith('carometro_normalizado.json')) {
+    event.respondWith(networkFirst(req));
     return;
   }
 
-  // Demais: cache-first
-  event.respondWith(
-    caches.match(event.request).then((resp) => resp || fetch(event.request))
-  );
+  // Fotos e fundos: cache-first com atualização em segundo plano
+  if (url.pathname.startsWith('/carometro/prefeitos/') ||
+      url.pathname.startsWith('/carometro/hero/') ||
+      url.pathname.startsWith('/prefeitos/') ||
+      url.pathname.startsWith('/hero/')) {
+    event.respondWith(cacheFirst(req));
+    return;
+  }
+
+  // Demais estáticos: cache-first
+  event.respondWith(cacheFirst(req));
 });
+
+async function cacheFirst(req){
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(req);
+  if (cached) {
+    // Atualiza em background
+    fetch(req).then(r => cache.put(req, r.clone())).catch(()=>{});
+    return cached;
+  }
+  const fresh = await fetch(req);
+  cache.put(req, fresh.clone());
+  return fresh;
+}
+
+async function networkFirst(req){
+  const cache = await caches.open(CACHE_NAME);
+  try{
+    const fresh = await fetch(req);
+    cache.put(req, fresh.clone());
+    return fresh;
+  }catch(e){
+    const cached = await cache.match(req);
+    return cached || new Response('[]', {headers:{'Content-Type':'application/json'}});
+  }
+}
