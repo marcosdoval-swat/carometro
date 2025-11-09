@@ -1,1 +1,175 @@
-:root { --bg:#0b0f12; --card:#12181d; --text:#e5e7eb; --muted:#94a3b8; --accent:#10b981; --table:#0f1418; }* { box-sizing:border-box; }html,body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif; }header, footer { padding:16px; display:flex; align-items:center; justify-content:space-between; background:var(--card); position:sticky; top:0; z-index:10; }h1 { margin:0; font-size:20px; }main { padding:16px; max-width:1100px; margin:0 auto; }.search { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }input, select, button { border:1px solid #26313b; background:#0f1418; color:var(--text); padding:10px 12px; border-radius:10px; }button { cursor:pointer; }button:hover { border-color: var(--accent); }#card { display:flex; gap:16px; background:var(--card); padding:16px; border-radius:16px; margin-bottom:16px; }#card img { width:140px; height:140px; border-radius:12px; object-fit:cover; background:#0f1418; border:1px solid #26313b; }.card-right p { margin:6px 0; color: var(--muted); }.totais { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }.tot { background:var(--card); padding:12px; border-radius:12px; text-align:center; }.tot span { display:block; color:var(--muted); font-size:12px; }.tot strong { font-size:18px; }.charts { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:16px; }.chart-wrap { background:var(--card); padding:12px; border-radius:12px; }.filters { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }.table { background:var(--card); border-radius:12px; overflow:auto; }table { width:100%; border-collapse: collapse; }th, td { padding:10px; border-bottom:1px solid #26313b; font-size:13px; vertical-align:top; }thead th { position:sticky; top:0; background:#12181d; }.export { display:flex; justify-content:flex-end; margin-top:12px; }@media (max-width: 900px) { .charts { grid-template-columns:1fr; } .totais { grid-template-columns:repeat(2,1fr); } #card { flex-direction:column; align-items:center; }}
+:root{
+  --bg:#0b0f12;
+  --card:#12181d;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --accent:#10b981;
+  --table:#0f1418;
+}
+
+*{ box-sizing:border-box; }
+
+html,body{
+  margin:0;
+  padding:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;
+}
+
+header,footer{
+  padding:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--card);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+h1{ margin:0; font-size:20px; }
+
+main{
+  padding:16px;
+  max-width:1100px;
+  margin:0 auto;
+}
+
+.search{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+
+input,select,button{
+  border:1px solid #26313b;
+  background:#0f1418;
+  color:var(--text);
+  padding:10px 12px;
+  border-radius:10px;
+}
+
+button{ cursor:pointer; }
+button:hover{ border-color:var(--accent); }
+
+#card{
+  display:flex;
+  gap:16px;
+  background:var(--card);
+  padding:16px;
+  border-radius:16px;
+  margin-bottom:16px;
+}
+
+#card img{
+  width:140px;
+  height:140px;
+  border-radius:12px;
+  object-fit:cover;
+  background:#0f1418;
+  border:1px solid #26313b;
+}
+
+.card-right p{
+  margin:6px 0;
+  color:var(--muted);
+}
+
+.totais{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.tot{
+  background:var(--card);
+  padding:12px;
+  border-radius:12px;
+  text-align:center;
+}
+
+.tot span{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.tot strong{ font-size:18px; }
+
+.charts{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px;
+  margin-bottom:16px;
+}
+
+.chart-wrap{
+  background:var(--card);
+  padding:12px;
+  border-radius:12px;
+}
+
+.filters{
+  display:flex;
+  gap:8px;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+
+.table{
+  background:var(--card);
+  border-radius:12px;
+  overflow:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th,td{
+  padding:10px;
+  border-bottom:1px solid #26313b;
+  font-size:13px;
+  vertical-align:top;
+}
+
+thead th{
+  position:sticky;
+  top:0;
+  background:#12181d;
+}
+
+.export{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:12px;
+}
+
+@media (max-width:900px){
+  .charts{ grid-template-columns:1fr; }
+  .totais{ grid-template-columns:repeat(2,1fr); }
+  #card{ flex-direction:column; align-items:center; }
+}
+
+/* =======================================================
+   Overrides específicos da foto/logo do prefeito
+   (Ficam por último para prevalecer sobre as regras acima)
+   ======================================================= */
+#fotoPrefeito{
+  background:transparent !important;  /* sem “quadro” atrás */
+  border:0 !important;                /* remove a borda */
+}
+
+/* Quando o fallback usar a sua LOGO, exiba-a inteira */
+#fotoPrefeito[src*="icons/icon-512.png"]{
+  object-fit:contain !important;      /* não recorta a logo */
+}
+
+/* (Opcional) Para destacar mais a imagem, descomente:
+#fotoPrefeito{ width:260px; height:260px; border-radius:16px; }
+*/
