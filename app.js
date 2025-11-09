@@ -64,15 +64,19 @@ function fillCard(m){
   if (email)      email.textContent      = c.email_prefeitura || c.email_pessoal || '';
   if (celular)    celular.textContent    = c.celular || '';
 
-  // Foto do prefeito: mostra somente se existir; senão, esconde.
-  const img = document.getElementById('fotoPrefeito');
-  if (img){
-    const asset = m.foto_asset || `prefeitos/${slug(m.municipio)}.jpg`;
-    img.style.display = ''; // garante que volte a aparecer quando houver
-    img.onload  = () => { img.style.display = ''; };
-    img.onerror = () => { img.removeAttribute('src'); img.style.display = 'none'; };
-    img.src = asset;
-  }
+  // Foto do prefeito
+const img = document.getElementById('fotoPrefeito');
+if (img){
+  const asset = m.foto_asset || `prefeitos/${slug(m.municipio)}.jpg`;
+  img.style.display = '';
+  img.onload  = () => { img.style.display = ''; };
+  // QUANDO NÃO TIVER FOTO: usa sua logo (sem tela verde)
+  img.onerror = () => { 
+ img.src = 'icons/icon-512.png';   // sua arte azul
+img.style.display = ''; 
+  };
+  img.src = asset;
+}
 }
 
 /* =========================
