@@ -1,49 +1,71 @@
-// service-worker.js — Carômetro
-const CACHE_NAME = 'carometro-cache-v29';
-// Itens essenciais para offline
+// service-worker.js — Carômetro (v30)
+const CACHE_NAME = 'carometro-cache-v30';
+
+// Itens essenciais para offline (núcleo do app)
 const CORE_ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
+  './ui.js',
   './carometro_normalizado.json',
+
+  // Ícones
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './icons/apple-touch-icon.png'
+  './icons/apple-touch-icon.png',
+
+  // Artes da capa (hero) – múltiplos tamanhos
+  './hero/hero-1080x2340.jpg',
+  './hero/hero-1170x2532.jpg',
+  './hero/hero-1179x2556.jpg',
+  './hero/hero-1242x2688.jpg',
+  './hero/hero-1284x2778.jpg',
+  './hero/hero-1290x2796.jpg',
+  './hero/hero-1920x1080.jpg',
+  './hero/hero-2048x2732.jpg'
 ];
 
-// Instalação: pré-cache básico
-self.addEventListener('install', event => {
+// Instalação: pré-cache
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS))
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(CORE_ASSETS))
       .then(() => self.skipWaiting())
   );
 });
 
-// Ativação: limpa caches antigos
-self.addEventListener('activate', event => {
+// Ativação: remove caches antigos
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)))
     ).then(() => self.clients.claim())
   );
 });
 
 // Estratégias de busca
-self.addEventListener('fetch', event => {
+self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Apenas GET
+  // só GET
   if (req.method !== 'GET') return;
 
-  // JSON: network-first (para sempre ter dados novos)
-  if (url.pathname.endsWith('carometro_normalizado.json')) {
+  // CDN / terceiros (ex.: Chart.js): cache-first
+  if (url.origin !== location.origin) {
+    event.respondWith(cacheFirst(req));
+    return;
+  }
+
+  // JSON de dados: network-first (para manter atualizado)
+  if (url.pathname.endsWith('/carometro_normalizado.json') ||
+      url.pathname.endsWith('carometro_normalizado.json')) {
     event.respondWith(networkFirst(req));
     return;
   }
 
-  // Fotos e fundos: cache-first com atualização em segundo plano
+  // Fotos e capas: cache-first com atualização em background
   if (url.pathname.startsWith('/carometro/prefeitos/') ||
       url.pathname.startsWith('/carometro/hero/') ||
       url.pathname.startsWith('/prefeitos/') ||
@@ -52,31 +74,38 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Demais estáticos: cache-first
+  // Demais estáticos do app: cache-first
   event.respondWith(cacheFirst(req));
 });
 
-async function cacheFirst(req){
+// ========= Helpers =========
+async function cacheFirst(req) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(req);
   if (cached) {
-    // Atualiza em background
-    fetch(req).then(r => cache.put(req, r.clone())).catch(()=>{});
+    // Atualiza em background (stale-while-revalidate)
+    fetch(req).then((resp) => {
+      if (resp && resp.ok) cache.put(req, resp.clone());
+    }).catch(() => {});
     return cached;
   }
   const fresh = await fetch(req);
-  cache.put(req, fresh.clone());
+  // Evita colocar respostas inválidas no cache
+  if (fresh && fresh.ok) cache.put(req, fresh.clone());
   return fresh;
 }
 
-async function networkFirst(req){
+async function networkFirst(req) {
   const cache = await caches.open(CACHE_NAME);
-  try{
+  try {
     const fresh = await fetch(req);
-    cache.put(req, fresh.clone());
+    if (fresh && fresh.ok) cache.put(req, fresh.clone());
     return fresh;
-  }catch(e){
+  } catch (e) {
     const cached = await cache.match(req);
-    return cached || new Response('[]', {headers:{'Content-Type':'application/json'}});
+    return (
+      cached ||
+      new Response('[]', { headers: { 'Content-Type': 'application/json' } })
+    );
   }
 }
