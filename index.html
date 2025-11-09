@@ -26,8 +26,7 @@
   </header>
 
   <main>
-
-    <!-- HERO com a arte ao fundo + busca no topo -->
+    <!-- 1) PRIMEIRA TELA: HERO com a arte e a busca -->
     <section class="hero">
       <div class="hero-overlay">
         <div class="search">
@@ -36,72 +35,78 @@
           <datalist id="municipios"></datalist>
           <button id="btnBuscar">BUSCAR</button>
         </div>
+        <p class="hero-subtitle">
+          Recursos enviados do Senador Marcos do Val para o Estado do Espírito Santo
+        </p>
       </div>
     </section>
 
-    <!-- Cartão do prefeito -->
-    <section id="card">
-      <div class="card-left">
-        <img id="fotoPrefeito" alt="Foto do prefeito" />
-      </div>
-      <div class="card-right">
-        <h2 id="nomePrefeito">Selecione um município</h2>
-        <p><strong>Partido:</strong> <span id="partido"></span></p>
-        <p><strong>Mandato:</strong> <span id="mandato"></span></p>
-        <p><strong>Vice:</strong> <span id="vice"></span></p>
-        <div class="contatos">
-          <p><strong>Gabinete:</strong> <span id="gabinete"></span></p>
-          <p><strong>Prefeitura:</strong> <span id="prefeitura"></span></p>
-          <p><strong>Email:</strong> <span id="email"></span></p>
-          <p><strong>Celular:</strong> <span id="celular"></span></p>
+    <!-- 2) RESULTADOS: só aparecem depois da busca -->
+    <section id="results" hidden>
+      <!-- Cartão do prefeito -->
+      <section id="card">
+        <div class="card-left">
+          <img id="fotoPrefeito" alt="Foto do prefeito" />
         </div>
-      </div>
-    </section>
+        <div class="card-right">
+          <h2 id="nomePrefeito">Selecione um município</h2>
+          <p><strong>Partido:</strong> <span id="partido"></span></p>
+          <p><strong>Mandato:</strong> <span id="mandato"></span></p>
+          <p><strong>Vice:</strong> <span id="vice"></span></p>
+          <div class="contatos">
+            <p><strong>Gabinete:</strong> <span id="gabinete"></span></p>
+            <p><strong>Prefeitura:</strong> <span id="prefeitura"></span></p>
+            <p><strong>Email:</strong> <span id="email"></span></p>
+            <p><strong>Celular:</strong> <span id="celular"></span></p>
+          </div>
+        </div>
+      </section>
 
-    <!-- Totais -->
-    <section class="totais">
-      <div class="tot"><span>Destinado</span><strong id="tDestinado">R$ 0</strong></div>
-      <div class="tot"><span>Empenhado</span><strong id="tEmpenhado">R$ 0</strong></div>
-      <div class="tot"><span>Pago</span><strong id="tPago">R$ 0</strong></div>
-      <div class="tot"><span>Saldo</span><strong id="tSaldo">R$ 0</strong></div>
-    </section>
+      <!-- Totais -->
+      <section class="totais">
+        <div class="tot"><span>Destinado</span><strong id="tDestinado">R$ 0</strong></div>
+        <div class="tot"><span>Empenhado</span><strong id="tEmpenhado">R$ 0</strong></div>
+        <div class="tot"><span>Pago</span><strong id="tPago">R$ 0</strong></div>
+        <div class="tot"><span>Saldo</span><strong id="tSaldo">R$ 0</strong></div>
+      </section>
 
-    <!-- Gráficos -->
-    <section class="charts">
-      <div class="chart-wrap">
-        <h3>Por Macro-área</h3>
-        <canvas id="barChart"></canvas>
-      </div>
-      <div class="chart-wrap">
-        <h3>Por Situação</h3>
-        <canvas id="pieChart"></canvas>
-      </div>
-    </section>
+      <!-- Gráficos -->
+      <section class="charts">
+        <div class="chart-wrap">
+          <h3>Por Macro-área</h3>
+          <canvas id="barChart"></canvas>
+        </div>
+        <div class="chart-wrap">
+          <h3>Por Situação</h3>
+          <canvas id="pieChart"></canvas>
+        </div>
+      </section>
 
-    <!-- Filtros -->
-    <section class="filters">
-      <select id="fAno"><option value="">Ano (todos)</option></select>
-      <select id="fTipo"><option value="">Tipo (todos)</option></select>
-      <select id="fSit"><option value="">Situação (todas)</option></select>
-    </section>
+      <!-- Filtros -->
+      <section class="filters">
+        <select id="fAno"><option value="">Ano (todos)</option></select>
+        <select id="fTipo"><option value="">Tipo (todos)</option></select>
+        <select id="fSit"><option value="">Situação (todas)</option></select>
+      </section>
 
-    <!-- Tabela -->
-    <section class="table">
-      <table>
-        <thead>
-          <tr>
-            <th>Ano</th><th>Tipo</th><th>Área</th><th>Beneficiário</th>
-            <th>Objeto</th><th>Situação</th><th>Val. Emenda</th>
-            <th>Empenhado</th><th>Pago</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </section>
+      <!-- Tabela -->
+      <section class="table">
+        <table>
+          <thead>
+            <tr>
+              <th>Ano</th><th>Tipo</th><th>Área</th><th>Beneficiário</th>
+              <th>Objeto</th><th>Situação</th><th>Val. Emenda</th>
+              <th>Empenhado</th><th>Pago</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </section>
 
-    <!-- Exportar -->
-    <section class="export">
-      <button id="btnPDF">Exportar PDF</button>
+      <!-- Exportar -->
+      <section class="export">
+        <button id="btnPDF">Exportar PDF</button>
+      </section>
     </section>
   </main>
 
@@ -109,6 +114,9 @@
     <small>Carômetro • PWA offline</small>
   </footer>
 
+  <!-- Sua lógica principal permanece -->
   <script src="app.js"></script>
+  <!-- Novo: controla mostrar/ocultar resultados -->
+  <script src="ui.js"></script>
 </body>
 </html>
