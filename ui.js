@@ -1,72 +1,73 @@
-// ui.js — controla "Capa (hero)" x "Resultados"
-// Mostra resultados SOMENTE quando o app.js já preencheu os dados.
+// ui.js — popula o datalist, revela resultados e aciona o BUSCAR
+document.addEventListener('DOMContentLoaded', () => {
+  const input   = document.getElementById('municipio');
+  const lista   = document.getElementById('municipios');
+  const btn     = document.getElementById('btnBuscar');
+  const results = document.getElementById('results');
 
-(function () {
-  const $ = (s) => document.querySelector(s);
-
-  const input   = $('#municipio');
-  const btn     = $('#btnBuscar');
-  const results = $('#results');
-  const hero    = $('.hero-wrap'); // capa
-
-  // Esconde resultados ao carregar
+  // 1) Na primeira carga, esconda a área de resultados
   if (results) results.hidden = true;
 
-  // Heurística: há resultados quando:
-  // - nome do prefeito mudou do placeholder OU
-  // - a tabela tem linhas OU
-  // - já preencheu valores nos totais
-  function hasResults() {
-    const nome = ($('#nomePrefeito')?.textContent || '').trim();
-    const okNome = nome && nome !== 'Selecione um município';
-
-    const linhas = $('#tbody')?.querySelectorAll('tr')?.length || 0;
-    const okTabela = linhas > 0;
-
-    const tDest = ($('#tDestinado')?.textContent || '').trim();
-    const okTotais = tDest && tDest !== 'R$ 0';
-
-    return okNome || okTabela || okTotais;
+  // 2) Preenche o <datalist> com os municípios (caso ainda não esteja preenchido)
+  async function preencherDatalistSeVazio() {
+    if (!lista || (lista.options && lista.options.length > 0)) return;
+    try {
+      const resp = await fetch('carometro_normalizado.json', { cache: 'no-store' });
+      const data = await resp.json();
+      // tenta achar o campo de município, normalizando nomes
+      const nomes = Array.from(
+        new Set(
+          data.map(r =>
+            (r.municipio || r.Municipio || r.city || '').toString().trim()
+          ).filter(Boolean)
+        )
+      ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      nomes.forEach(n => {
+        const opt = document.createElement('option');
+        opt.value = n;
+        lista.appendChild(opt);
+      });
+    } catch (e) {
+      // silencioso para não quebrar a página se estiver offline
+      console.warn('Não foi possível preencher o datalist:', e);
+    }
   }
 
-  function showResults(on) {
-    if (!results) return;
-    results.hidden = !on;
-    if (hero) hero.style.display = on ? 'none' : '';
-    document.body.classList.toggle('mode-results', !!on);
-    document.body.classList.toggle('mode-hero', !on);
-    // Rolagem confortável até o topo do conteúdo
-    if (on) setTimeout(() => results.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
-  }
+  preencherDatalistSeVazio();
 
-  // Após clicar em BUSCAR (ou Enter), esperamos o app.js preencher e só então exibimos
-  function handleSearchTrigger() {
-    // Se campo vazio, volta pra capa
+  // 3) Quando tiver texto no campo e o usuário mandar buscar, revela resultados
+  function revelarEAcionarBusca() {
     const hasValue = (input?.value || '').trim().length > 0;
-    if (!hasValue) { showResults(false); return; }
+    if (!hasValue) return;
+    if (results) results.hidden = false;
 
-    // Espera curta pelo render do app.js
-    const startedAt = Date.now();
-    const timeoutMs = 1500;
-    const tick = () => {
-      if (hasResults()) {
-        showResults(true);
-      } else if (Date.now() - startedAt < timeoutMs) {
-        setTimeout(tick, 80);
-      } else {
-        // Não veio nada: fica na capa
-        showResults(false);
-      }
-    };
-    tick();
+    // aciona o clique do botão para o app.js tratar a busca
+    // (isso preserva toda a sua lógica existente)
+    btn?.click();
+
+    // Role até o card de resultados
+    setTimeout(() => {
+      results?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   }
 
-  btn?.addEventListener('click', handleSearchTrigger);
-
+  // ENTER no campo dispara a busca
   input?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleSearchTrigger();
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      revelarEAcionarBusca();
+    }
   });
 
-  // Expor gancho opcional: o app.js pode chamar quando terminar de renderizar
-  window.setResultsMode = (on) => showResults(!!on);
-})();
+  // Clique no botão BUSCAR
+  btn?.addEventListener('click', (e) => {
+    // Se o app.js já “pegou” o clique, só garantimos que a área apareça
+    if (results) results.hidden = false;
+  });
+
+  // Caso o botão não tenha listener do app.js ainda (ordem de scripts),
+  // fazemos um fallback: ao soltar o clique, garantimos a busca.
+  btn?.addEventListener('mouseup', () => {
+    revelarEAcionarBusca();
+  });
+});
