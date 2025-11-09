@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="theme-color" content="#10b981">
+
   <title>Carômetro Prefeituras</title>
 
-  <!-- PWA -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b0f12">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 
-  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
@@ -22,31 +23,41 @@
   </header>
 
   <main>
-    <!-- HERO = primeira tela com a arte e a busca por cima -->
-    <section class="hero">
-      <picture class="hero-media">
-        <source srcset="hero/hero-2048x2732.jpg" media="(min-width:1200px)">
-        <source srcset="hero/hero-1920x1080.jpg" media="(min-width:900px)">
-        <source srcset="hero/hero-1284x2778.jpg" media="(min-width:600px)">
-        <img class="hero-img" src="hero/hero-1290x2796.jpg"
-             alt="Senador Marcos do Val e mapa do ES" loading="eager">
-      </picture>
-
-      <div class="hero-controls">
-        <div class="search-row">
-          <label for="municipio">Município</label>
-          <input id="municipio" list="municipios" placeholder="Digite e selecione…">
-          <datalist id="municipios"></datalist>
-          <button id="btnBuscar">BUSCAR</button>
-        </div>
-        <p class="hero-subtitle">
-          Recursos enviados do Senador Marcos do Val para o Estado do Espírito Santo
-        </p>
-      </div>
+    <!-- Barra de busca fixa no topo (permanece em todas as telas) -->
+    <section class="search">
+      <label for="municipio">Município</label>
+      <input id="municipio" list="municipios" placeholder="Digite e selecione…">
+      <datalist id="municipios"></datalist>
+      <button id="btnBuscar">BUSCAR</button>
     </section>
 
-    <!-- RESULTADOS: ficam ocultos até buscar -->
-    <section id="results" hidden>
+    <!-- CAPA (primeira tela) -->
+    <section class="hero-wrap">
+      <div class="hero-media">
+        <img
+          class="hero-img"
+          src="hero/hero-1920x1080.jpg"
+          srcset="
+            hero/hero-1080x2340.jpg 1080w,
+            hero/hero-1170x2532.jpg 1170w,
+            hero/hero-1179x2556.jpg 1179w,
+            hero/hero-1242x2688.jpg 1242w,
+            hero/hero-1284x2778.jpg 1284w,
+            hero/hero-1290x2796.jpg 1290w,
+            hero/hero-1920x1080.jpg 1920w,
+            hero/hero-2048x2732.jpg 2048w
+          "
+          sizes="(max-width: 900px) 100vw, 1100px"
+          alt="Arte de abertura"
+        >
+      </div>
+      <p class="hero-sub">
+        Recursos enviados do Senador Marcos do Val para o Estado do Espírito Santo.
+      </p>
+    </section>
+
+    <!-- RESULTADOS (inicia oculto) -->
+    <div id="results" hidden>
       <section id="card">
         <div class="card-left">
           <img id="fotoPrefeito" alt="Foto do prefeito">
@@ -92,11 +103,11 @@
       <section class="table">
         <table>
           <thead>
-          <tr>
-            <th>Ano</th><th>Tipo</th><th>Área</th><th>Beneficiário</th>
-            <th>Objeto</th><th>Situação</th><th>Val. Emenda</th>
-            <th>Empenhado</th><th>Pago</th>
-          </tr>
+            <tr>
+              <th>Ano</th><th>Tipo</th><th>Área</th><th>Beneficiário</th>
+              <th>Objeto</th><th>Situação</th><th>Val. Emenda</th>
+              <th>Empenhado</th><th>Pago</th>
+            </tr>
           </thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -105,11 +116,13 @@
       <section class="export">
         <button id="btnPDF">Exportar PDF</button>
       </section>
-    </section>
+    </div>
   </main>
 
   <footer><small>Carômetro • PWA offline</small></footer>
 
-<script src="app.js"></script>
-<script src="ui.js"></script>
-</body></html>
+  <!-- Scripts -->
+  <script src="app.js"></script>
+  <script src="ui.js"></script>
+</body>
+</html>
