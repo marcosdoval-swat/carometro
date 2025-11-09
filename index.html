@@ -1,0 +1,26 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Carômetro Prefeituras</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#10b981">
+<link rel="apple-touch-icon" href="icons/icon-512.png"><link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head><body>
+<header><h1>Carômetro Prefeituras</h1><button id="btnInstall" hidden>Instalar</button></header>
+<main>
+<section class="search"><label for="municipio">Município</label><input id="municipio" list="municipios" placeholder="Digite e selecione…"><datalist id="municipios"></datalist><button id="btnBuscar">Buscar</button></section>
+<section id="card"><div class="card-left"><img id="fotoPrefeito" alt="Foto do prefeito" /></div><div class="card-right">
+<h2 id="nomePrefeito">Selecione um município</h2>
+<p><strong>Partido:</strong> <span id="partido"></span></p>
+<p><strong>Mandato:</strong> <span id="mandato"></span></p>
+<p><strong>Vice:</strong> <span id="vice"></span></p>
+<div class="contatos"><p><strong>Gabinete:</strong> <span id="gabinete"></span></p>
+<p><strong>Prefeitura:</strong> <span id="prefeitura"></span></p>
+<p><strong>Email:</strong> <span id="email"></span></p>
+<p><strong>Celular:</strong> <span id="celular"></span></p></div></div></section>
+<section class="totais"><div class="tot"><span>Destinado</span><strong id="tDestinado">R$ 0</strong></div><div class="tot"><span>Empenhado</span><strong id="tEmpenhado">R$ 0</strong></div><div class="tot"><span>Pago</span><strong id="tPago">R$ 0</strong></div><div class="tot"><span>Saldo</span><strong id="tSaldo">R$ 0</strong></div></section>
+<section class="charts"><div class="chart-wrap"><h3>Por Macro-área</h3><canvas id="barChart"></canvas></div><div class="chart-wrap"><h3>Por Situação</h3><canvas id="pieChart"></canvas></div></section>
+<section class="filters"><select id="fAno"><option value="">Ano (todos)</option></select><select id="fTipo"><option value="">Tipo (todos)</option></select><select id="fSit"><option value="">Situação (todas)</option></select></section>
+<section class="table"><table><thead><tr><th>Ano</th><th>Tipo</th><th>Área</th><th>Beneficiário</th><th>Objeto</th><th>Situação</th><th>Val. Emenda</th><th>Empenhado</th><th>Pago</th></tr></thead><tbody id="tbody"></tbody></table></section>
+<section class="export"><button id="btnPDF">Exportar PDF</button></section>
+</main><footer><small>Carômetro • PWA offline</small></footer>
+<script src="app.js"></script></body></html>
