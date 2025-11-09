@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-
   <title>Carômetro Prefeituras</title>
 
   <!-- PWA -->
@@ -13,10 +12,7 @@
   <meta name="theme-color" content="#0b0f12">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 
-  <!-- Estilos -->
   <link rel="stylesheet" href="style.css">
-
-  <!-- Charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -26,10 +22,18 @@
   </header>
 
   <main>
-    <!-- 1) PRIMEIRA TELA: HERO com a arte e a busca -->
+    <!-- HERO = primeira tela com a arte e a busca por cima -->
     <section class="hero">
-      <div class="hero-overlay">
-        <div class="search">
+      <picture class="hero-media">
+        <source srcset="hero/hero-2048x2732.jpg" media="(min-width:1200px)">
+        <source srcset="hero/hero-1920x1080.jpg" media="(min-width:900px)">
+        <source srcset="hero/hero-1284x2778.jpg" media="(min-width:600px)">
+        <img class="hero-img" src="hero/hero-1290x2796.jpg"
+             alt="Senador Marcos do Val e mapa do ES" loading="eager">
+      </picture>
+
+      <div class="hero-controls">
+        <div class="search-row">
           <label for="municipio">Município</label>
           <input id="municipio" list="municipios" placeholder="Digite e selecione…">
           <datalist id="municipios"></datalist>
@@ -41,12 +45,11 @@
       </div>
     </section>
 
-    <!-- 2) RESULTADOS: só aparecem depois da busca -->
+    <!-- RESULTADOS: ficam ocultos até buscar -->
     <section id="results" hidden>
-      <!-- Cartão do prefeito -->
       <section id="card">
         <div class="card-left">
-          <img id="fotoPrefeito" alt="Foto do prefeito" />
+          <img id="fotoPrefeito" alt="Foto do prefeito">
         </div>
         <div class="card-right">
           <h2 id="nomePrefeito">Selecione um município</h2>
@@ -62,7 +65,6 @@
         </div>
       </section>
 
-      <!-- Totais -->
       <section class="totais">
         <div class="tot"><span>Destinado</span><strong id="tDestinado">R$ 0</strong></div>
         <div class="tot"><span>Empenhado</span><strong id="tEmpenhado">R$ 0</strong></div>
@@ -70,7 +72,6 @@
         <div class="tot"><span>Saldo</span><strong id="tSaldo">R$ 0</strong></div>
       </section>
 
-      <!-- Gráficos -->
       <section class="charts">
         <div class="chart-wrap">
           <h3>Por Macro-área</h3>
@@ -82,41 +83,34 @@
         </div>
       </section>
 
-      <!-- Filtros -->
       <section class="filters">
         <select id="fAno"><option value="">Ano (todos)</option></select>
         <select id="fTipo"><option value="">Tipo (todos)</option></select>
         <select id="fSit"><option value="">Situação (todas)</option></select>
       </section>
 
-      <!-- Tabela -->
       <section class="table">
         <table>
           <thead>
-            <tr>
-              <th>Ano</th><th>Tipo</th><th>Área</th><th>Beneficiário</th>
-              <th>Objeto</th><th>Situação</th><th>Val. Emenda</th>
-              <th>Empenhado</th><th>Pago</th>
-            </tr>
+          <tr>
+            <th>Ano</th><th>Tipo</th><th>Área</th><th>Beneficiário</th>
+            <th>Objeto</th><th>Situação</th><th>Val. Emenda</th>
+            <th>Empenhado</th><th>Pago</th>
+          </tr>
           </thead>
           <tbody id="tbody"></tbody>
         </table>
       </section>
 
-      <!-- Exportar -->
       <section class="export">
         <button id="btnPDF">Exportar PDF</button>
       </section>
     </section>
   </main>
 
-  <footer>
-    <small>Carômetro • PWA offline</small>
-  </footer>
+  <footer><small>Carômetro • PWA offline</small></footer>
 
-  <!-- Sua lógica principal permanece -->
   <script src="app.js"></script>
-  <!-- Novo: controla mostrar/ocultar resultados -->
   <script src="ui.js"></script>
 </body>
 </html>
