@@ -3,8 +3,8 @@
   --card:#12181d;
   --text:#e5e7eb;
   --muted:#94a3b8;
-  --accent:#10b981;        /* verde (mantido para o resto do tema) */
-  --highlight:#2ea8ff;     /* AZUL CLARO para campo + botão */
+  --accent:#10b981;        /* verde para o restante do tema */
+  --highlight:#2ea8ff;     /* azul claro do campo/botão */
   --table:#0f1418;
 }
 
@@ -18,9 +18,6 @@ html,body{
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;
 }
 
-/* =========================
-   Header fixo
-   ========================= */
 header,footer{
   padding:16px;
   display:flex;
@@ -34,42 +31,38 @@ header,footer{
 
 h1{ margin:0; font-size:20px; }
 
-/* =========================
-   Main container
-   ========================= */
 main{
   padding:16px;
   max-width:1100px;
   margin:0 auto;
 }
 
-/* =========================
-   HERO (arte ao fundo)
-   ========================= */
+/* ===== HERO (primeira tela) ===== */
 .hero{
   position:relative;
   border-radius:16px;
   overflow:hidden;
   margin-bottom:16px;
-
-  /* mobile: usa a versão alta */
-  background:#0b0f12 url('hero/hero-1290x2796.jpg') center/cover no-repeat;
-  min-height: 220px;
+  background:#0b0f12 url('hero/hero-1290x2796.jpg') center/cover no-repeat; /* mobile */
+  min-height:220px;
 }
 .hero::after{
-  /* leve vinheta p/ leitura do formulário */
   content:'';
   position:absolute; inset:0;
-  background:linear-gradient(180deg, rgba(11,15,18,.65), rgba(11,15,18,.4));
+  background:linear-gradient(180deg, rgba(11,15,18,.60), rgba(11,15,18,.35));
 }
 .hero-overlay{
   position:relative;
   padding:16px;
 }
+.hero-subtitle{
+  margin-top:10px;
+  font-size:14px;
+  color:#d2e9ff;
+  text-shadow:0 1px 2px rgba(0,0,0,.4);
+}
 
-/* =========================
-   Área de busca
-   ========================= */
+/* ===== Busca (fixa no topo do hero) ===== */
 .search{
   display:flex;
   gap:8px;
@@ -85,14 +78,13 @@ input,select,button{
   padding:10px 12px;
   border-radius:10px;
 }
-
 button{ cursor:pointer; }
 button:hover{ border-color:var(--accent); }
 
-/* Destaque PERMANENTE do campo */
+/* Destaque azul PERMANENTE do campo */
 #municipio{
   height:56px;
-  font-size:16px;               /* evita zoom no iOS */
+  font-size:16px;
   border:2px solid var(--highlight);
   padding:0 14px;
   outline:none;
@@ -101,7 +93,7 @@ button:hover{ border-color:var(--accent); }
 }
 #municipio::placeholder{ color:#9ccfff; }
 
-/* Botão azul constante */
+/* Botão BUSCAR azul constante */
 #btnBuscar{
   height:56px;
   padding:0 18px;
@@ -112,20 +104,15 @@ button:hover{ border-color:var(--accent); }
   color:#072235;
   text-shadow:0 1px 0 rgba(255,255,255,.15);
   box-shadow:0 8px 22px rgba(46,168,255,.30);
-  transition:transform .05s, box-shadow .2s, filter .15s;
+  transition:transform .05s, box-shadow .2s;
 }
-#btnBuscar:hover{
-  transform:translateY(-1px);
-  box-shadow:0 10px 26px rgba(46,168,255,.38);
-}
-#btnBuscar:active{
-  transform:translateY(0);
-  box-shadow:0 6px 16px rgba(46,168,255,.22);
-}
+#btnBuscar:hover{ transform:translateY(-1px); box-shadow:0 10px 26px rgba(46,168,255,.38); }
+#btnBuscar:active{ transform:translateY(0); box-shadow:0 6px 16px rgba(46,168,255,.22); }
 
-/* =========================
-   Card do prefeito
-   ========================= */
+/* ===== Resultados (somem na primeira carga) ===== */
+#results[hidden]{ display:none; }
+
+/* Card do prefeito */
 #card{
   display:flex;
   gap:16px;
@@ -134,7 +121,6 @@ button:hover{ border-color:var(--accent); }
   border-radius:16px;
   margin-bottom:16px;
 }
-
 #card img{
   width:140px;
   height:140px;
@@ -143,104 +129,43 @@ button:hover{ border-color:var(--accent); }
   background:#0f1418;
   border:1px solid #26313b;
 }
-
-/* Sem “quadro” quando usar a sua logo de fallback */
+/* Quando cair no fallback (sua logo), sem moldura */
 #fotoPrefeito{ background:transparent !important; }
 #fotoPrefeito[src*="icons/icon-512.png"]{
   object-fit:contain !important;
   border:0 !important;
 }
+.card-right p{ margin:6px 0; color:var(--muted); }
 
-.card-right p{
-  margin:6px 0;
-  color:var(--muted);
-}
-
-/* =========================
-   Totais
-   ========================= */
+/* Totais */
 .totais{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:12px;
   margin-bottom:16px;
 }
-.tot{
-  background:var(--card);
-  padding:12px;
-  border-radius:12px;
-  text-align:center;
-}
-.tot span{
-  display:block;
-  color:var(--muted);
-  font-size:12px;
-}
+.tot{ background:var(--card); padding:12px; border-radius:12px; text-align:center; }
+.tot span{ display:block; color:var(--muted); font-size:12px; }
 .tot strong{ font-size:18px; }
 
-/* =========================
-   Gráficos, filtros e tabela
-   ========================= */
-.charts{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:16px;
-  margin-bottom:16px;
-}
-.chart-wrap{
-  background:var(--card);
-  padding:12px;
-  border-radius:12px;
-}
+/* Gráficos, filtros e tabela */
+.charts{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:16px; }
+.chart-wrap{ background:var(--card); padding:12px; border-radius:12px; }
+.filters{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.table{ background:var(--card); border-radius:12px; overflow:auto; }
+table{ width:100%; border-collapse:collapse; }
+th,td{ padding:10px; border-bottom:1px solid #26313b; font-size:13px; vertical-align:top; }
+thead th{ position:sticky; top:0; background:#12181d; }
 
-.filters{
-  display:flex;
-  gap:8px;
-  margin-bottom:12px;
-  flex-wrap:wrap;
-}
+/* Exportar */
+.export{ display:flex; justify-content:flex-end; margin-top:12px; }
 
-.table{
-  background:var(--card);
-  border-radius:12px;
-  overflow:auto;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-th,td{
-  padding:10px;
-  border-bottom:1px solid #26313b;
-  font-size:13px;
-  vertical-align:top;
-}
-thead th{
-  position:sticky;
-  top:0;
-  background:#12181d;
-}
-
-/* =========================
-   Exportar
-   ========================= */
-.export{
-  display:flex;
-  justify-content:flex-end;
-  margin-top:12px;
-}
-
-/* =========================
-   Responsivo
-   ========================= */
+/* Responsivo */
 @media (max-width:900px){
   .charts{ grid-template-columns:1fr; }
   .totais{ grid-template-columns:repeat(2,1fr); }
   #card{ flex-direction:column; align-items:center; }
 }
-
-/* Desktop: fundo mais largo */
 @media (min-width:1024px){
   .hero{ background-image:url('hero/hero-1920x1080.jpg'); min-height:260px; }
 }
