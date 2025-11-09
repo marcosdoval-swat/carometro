@@ -2,18 +2,25 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <!-- PWA / iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="theme-color" content="#10b981">
+
   <title>Carômetro Prefeituras</title>
 
+  <!-- Manifesto + ícone iOS -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#10b981">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 
-  <!-- CSS DO APP (linha que estava faltando) -->
+  <!-- CSS global -->
   <link rel="stylesheet" href="style.css">
 
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -22,28 +29,48 @@
     <button id="btnInstall" hidden>Instalar</button>
   </header>
 
-  <main>
-    <section class="search">
-      <label for="municipio">Município</label>
-      <input id="municipio" list="municipios" placeholder="Digite e selecione…">
-      <datalist id="municipios"></datalist>
-      <button id="btnBuscar">Buscar</button>
-    </section>
+  <!-- =========================
+       HERO com arte + busca
+       ========================= -->
+  <section class="hero">
+    <div class="hero-inner">
+      <form class="search" id="searchForm" onsubmit="return false;">
+        <label for="municipio">Município</label>
 
+        <input id="municipio"
+               list="municipios"
+               placeholder="Digite e selecione…"
+               autocomplete="off" />
+
+        <datalist id="municipios"></datalist>
+
+        <button id="btnBuscar" type="button">BUSCAR</button>
+      </form>
+
+      <p class="tagline">
+        Recursos enviados do Senador Marcos do Val para o Estado do Espírito Santo
+      </p>
+    </div>
+  </section>
+
+  <main>
     <section id="card">
       <div class="card-left">
         <img id="fotoPrefeito" alt="Foto do prefeito" />
       </div>
+
       <div class="card-right">
         <h2 id="nomePrefeito">Selecione um município</h2>
+
         <p><strong>Partido:</strong> <span id="partido"></span></p>
         <p><strong>Mandato:</strong> <span id="mandato"></span></p>
         <p><strong>Vice:</strong> <span id="vice"></span></p>
+
         <div class="contatos">
-          <p><strong>Gabinete:</strong> <span id="gabinete"></span></p>
+          <p><strong>Gabinete:</strong>  <span id="gabinete"></span></p>
           <p><strong>Prefeitura:</strong> <span id="prefeitura"></span></p>
-          <p><strong>Email:</strong> <span id="email"></span></p>
-          <p><strong>Celular:</strong> <span id="celular"></span></p>
+          <p><strong>Email:</strong>     <span id="email"></span></p>
+          <p><strong>Celular:</strong>   <span id="celular"></span></p>
         </div>
       </div>
     </section>
@@ -56,8 +83,14 @@
     </section>
 
     <section class="charts">
-      <div class="chart-wrap"><h3>Por Macro-área</h3><canvas id="barChart"></canvas></div>
-      <div class="chart-wrap"><h3>Por Situação</h3><canvas id="pieChart"></canvas></div>
+      <div class="chart-wrap">
+        <h3>Por Macro-área</h3>
+        <canvas id="barChart"></canvas>
+      </div>
+      <div class="chart-wrap">
+        <h3>Por Situação</h3>
+        <canvas id="pieChart"></canvas>
+      </div>
     </section>
 
     <section class="filters">
@@ -71,7 +104,8 @@
         <thead>
           <tr>
             <th>Ano</th><th>Tipo</th><th>Área</th><th>Beneficiário</th>
-            <th>Objeto</th><th>Situação</th><th>Val. Emenda</th><th>Empenhado</th><th>Pago</th>
+            <th>Objeto</th><th>Situação</th><th>Val. Emenda</th>
+            <th>Empenhado</th><th>Pago</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -83,7 +117,9 @@
     </section>
   </main>
 
-  <footer><small>Carômetro • PWA offline</small></footer>
+  <footer>
+    <small>Carômetro • PWA offline</small>
+  </footer>
 
   <script src="app.js"></script>
 </body>
