@@ -3,8 +3,8 @@
   --card:#12181d;
   --text:#e5e7eb;
   --muted:#94a3b8;
-  --accent:#10b981;        /* verde para o restante do tema */
-  --highlight:#2ea8ff;     /* azul claro do campo/botão */
+  --accent:#10b981;
+  --highlight:#2ea8ff;   /* azul do campo/botão */
   --table:#0f1418;
 }
 
@@ -37,40 +37,48 @@ main{
   margin:0 auto;
 }
 
-/* ===== HERO (primeira tela) ===== */
+/* ===== HERO ===== */
 .hero{
   position:relative;
   border-radius:16px;
   overflow:hidden;
   margin-bottom:16px;
-  background:#0b0f12 url('hero/hero-1290x2796.jpg') center/cover no-repeat; /* mobile */
-  min-height:220px;
 }
+.hero-media{ display:block; line-height:0; }
+.hero-img{ display:block; width:100%; height:auto; }
 .hero::after{
   content:'';
   position:absolute; inset:0;
-  background:linear-gradient(180deg, rgba(11,15,18,.60), rgba(11,15,18,.35));
+  background:linear-gradient(180deg, rgba(8,11,14,.45) 0%, rgba(8,11,14,.15) 60%, rgba(8,11,14,.00) 100%);
+  pointer-events:none;
 }
-.hero-overlay{
-  position:relative;
-  padding:16px;
+
+.hero-controls{
+  position:absolute;
+  left:clamp(10px, 2vw, 18px);
+  right:clamp(10px, 2vw, 18px);
+  top:clamp(10px, 2vw, 18px);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
+
+.search-row{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:10px;
+  align-items:center;
+  filter: drop-shadow(0 10px 28px rgba(0,0,0,.35));
+}
+
 .hero-subtitle{
-  margin-top:10px;
+  margin:2px 0 0;
   font-size:14px;
   color:#d2e9ff;
-  text-shadow:0 1px 2px rgba(0,0,0,.4);
+  text-shadow:0 1px 2px rgba(0,0,0,.55);
 }
 
-/* ===== Busca (fixa no topo do hero) ===== */
-.search{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  flex-wrap:wrap;
-  margin-bottom:0;
-}
-
+/* Campos e botões */
 input,select,button{
   border:1px solid #26313b;
   background:#0f1418;
@@ -79,17 +87,15 @@ input,select,button{
   border-radius:10px;
 }
 button{ cursor:pointer; }
-button:hover{ border-color:var(--accent); }
 
-/* Destaque azul PERMANENTE do campo */
+/* Destaque azul PERMANENTE */
 #municipio{
+  min-width:0;
   height:56px;
   font-size:16px;
   border:2px solid var(--highlight);
-  padding:0 14px;
   outline:none;
   box-shadow:0 0 0 3px rgba(46,168,255,.20);
-  background:#0f1418;
 }
 #municipio::placeholder{ color:#9ccfff; }
 
@@ -98,10 +104,10 @@ button:hover{ border-color:var(--accent); }
   height:56px;
   padding:0 18px;
   font-weight:800;
-  letter-spacing:.3px;
   border:2px solid var(--highlight);
   background:var(--highlight);
   color:#072235;
+  letter-spacing:.3px;
   text-shadow:0 1px 0 rgba(255,255,255,.15);
   box-shadow:0 8px 22px rgba(46,168,255,.30);
   transition:transform .05s, box-shadow .2s;
@@ -109,10 +115,9 @@ button:hover{ border-color:var(--accent); }
 #btnBuscar:hover{ transform:translateY(-1px); box-shadow:0 10px 26px rgba(46,168,255,.38); }
 #btnBuscar:active{ transform:translateY(0); box-shadow:0 6px 16px rgba(46,168,255,.22); }
 
-/* ===== Resultados (somem na primeira carga) ===== */
+/* ===== RESULTADOS (escondidos até buscar) ===== */
 #results[hidden]{ display:none; }
 
-/* Card do prefeito */
 #card{
   display:flex;
   gap:16px;
@@ -122,33 +127,31 @@ button:hover{ border-color:var(--accent); }
   margin-bottom:16px;
 }
 #card img{
-  width:140px;
-  height:140px;
+  width:140px; height:140px;
   border-radius:12px;
   object-fit:cover;
   background:#0f1418;
   border:1px solid #26313b;
 }
-/* Quando cair no fallback (sua logo), sem moldura */
+/* Logo fallback sem moldura */
 #fotoPrefeito{ background:transparent !important; }
 #fotoPrefeito[src*="icons/icon-512.png"]{
-  object-fit:contain !important;
-  border:0 !important;
+  object-fit:contain !important; border:0 !important;
 }
+
 .card-right p{ margin:6px 0; color:var(--muted); }
 
 /* Totais */
 .totais{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:12px;
-  margin-bottom:16px;
+  gap:12px; margin-bottom:16px;
 }
 .tot{ background:var(--card); padding:12px; border-radius:12px; text-align:center; }
 .tot span{ display:block; color:var(--muted); font-size:12px; }
 .tot strong{ font-size:18px; }
 
-/* Gráficos, filtros e tabela */
+/* Gráficos / Filtros / Tabela */
 .charts{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:16px; }
 .chart-wrap{ background:var(--card); padding:12px; border-radius:12px; }
 .filters{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
