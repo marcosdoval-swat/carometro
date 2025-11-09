@@ -1,7 +1,7 @@
 // service-worker.js — Carômetro
 // v6: força atualização + cache dinâmico das fotos dos prefeitos
 
-const CACHE_NAME = 'carometro-cache-v22';
+const CACHE_NAME = 'carometro-cache-v25';
 const CORE_ASSETS = [
   './',
   './index.html',
