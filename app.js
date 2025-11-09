@@ -1,8 +1,3 @@
-// ui.js — controla o fluxo de telas (primeira tela vs. resultados)
-document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('municipio');
-  const btn   = document.getElementById('btnBuscar');
-  const results = document.getElementById('results');
 
   // 1) Primeira carga: esconde resultados
   if (results) results.hidden = true;
