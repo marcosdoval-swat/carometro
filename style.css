@@ -3,12 +3,9 @@
   --card:#12181d;
   --text:#e5e7eb;
   --muted:#94a3b8;
-  --accent:#10b981;   /* verde do tema para outros elementos */
+  --accent:#10b981;     /* mantém tema (cards/realces) */
+  --brandBlue:#38bdf8;  /* azul claro para campo + botão */
   --table:#0f1418;
-
-  /* Azul claro específico da busca */
-  --search-blue:#0ea5ff;             /* cor do botão/contorno */
-  --search-glow:rgba(14,165,255,.28);/* brilho do foco/realce */
 }
 
 *{ box-sizing:border-box; }
@@ -19,6 +16,7 @@ html,body{
   background:var(--bg);
   color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif;
+  -webkit-text-size-adjust:100%;
 }
 
 header,footer{
@@ -40,32 +38,110 @@ main{
   margin:0 auto;
 }
 
-.search{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  flex-wrap:wrap;
-  margin-bottom:12px;
+/* =========================
+   HERO (arte + overlay)
+   ========================= */
+.hero{
+  position:relative;
+  min-height:44vh;
+  display:block;
+  background:#0b0f12 url('hero/hero-1290x2796.jpg') center/cover no-repeat;
+  border-bottom:1px solid #0f1418;
+}
+.hero::after{              /* véu p/ legibilidade */
+  content:'';
+  position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55));
+}
+.hero .hero-inner{
+  position:relative;       /* acima do véu */
+  z-index:1;
+  max-width:1100px;
+  margin:0 auto;
+  padding:18px 16px 24px;
+}
+.tagline{
+  margin:14px 0 0;
+  color:#cdefff;
+  text-shadow:0 1px 2px rgba(0,0,0,.35);
 }
 
+/* imagens hero por breakpoint */
+@media (min-width:768px){
+  .hero{ background-image:url('hero/hero-1920x1080.jpg'); }
+}
+@media (min-width:1024px){
+  .hero{ min-height:38vh; }
+}
+
+/* =======================
+   BUSCA (grid responsivo)
+   ======================= */
+.search{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "label label"
+    "input button";
+  align-items:center;
+  gap:12px;
+  margin:4px 0 6px;
+}
+
+.search label{ grid-area:label; font-weight:600; }
+
 input,select,button{
+  -webkit-appearance:none; appearance:none;
   border:1px solid #26313b;
   background:#0f1418;
   color:var(--text);
   padding:10px 12px;
-  border-radius:10px;
+  border-radius:14px;
+  font-size:16px; /* evita zoom no iOS */
 }
 
-button{ cursor:pointer; }
-button:hover{ border-color:var(--accent); }
+/* Campo Município com borda azul PERMANENTE */
+#municipio{
+  grid-area:input;
+  height:56px;
+  border:2px solid var(--brandBlue);
+  box-shadow:0 0 0 3px rgba(56,189,248,.25);
+  padding:0 14px;
+}
+#municipio::placeholder{ color:#9fdcfb; }
+#municipio:focus{
+  outline:none;
+  box-shadow:0 0 0 4px rgba(56,189,248,.35);
+}
 
+/* Botão BUSCAR azul sempre */
+#btnBuscar{
+  grid-area:button;
+  height:56px;
+  padding:0 22px;
+  font-weight:800;
+  letter-spacing:.3px;
+  color:#03131a;
+  background:var(--brandBlue);
+  border:2px solid var(--brandBlue);
+  border-radius:14px;
+  box-shadow:0 8px 24px rgba(56,189,248,.35);
+  cursor:pointer;
+  transition:transform .06s, box-shadow .2s, filter .2s;
+}
+#btnBuscar:hover{ transform:translateY(-1px); filter:saturate(1.05); }
+#btnBuscar:active{ transform:translateY(0); box-shadow:0 4px 12px rgba(56,189,248,.25); }
+
+/* =======================
+   Cartão do prefeito
+   ======================= */
 #card{
   display:flex;
   gap:16px;
   background:var(--card);
   padding:16px;
   border-radius:16px;
-  margin-bottom:16px;
+  margin:16px 0;
 }
 
 #card img{
@@ -82,144 +158,64 @@ button:hover{ border-color:var(--accent); }
   color:var(--muted);
 }
 
+/* Foto/logo sem “quadro” quando fallback */
+#fotoPrefeito{ background:transparent !important; border:0 !important; }
+#fotoPrefeito[src*="icons/icon-512.png"]{ object-fit:contain !important; }
+
+/* =======================
+   Totais
+   ======================= */
 .totais{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:12px;
   margin-bottom:16px;
 }
-
 .tot{
   background:var(--card);
   padding:12px;
   border-radius:12px;
   text-align:center;
 }
-
-.tot span{
-  display:block;
-  color:var(--muted);
-  font-size:12px;
-}
-
+.tot span{ display:block; color:var(--muted); font-size:12px; }
 .tot strong{ font-size:18px; }
 
+/* =======================
+   Gráficos
+   ======================= */
 .charts{
   display:grid;
   grid-template-columns:repeat(2,1fr);
   gap:16px;
   margin-bottom:16px;
 }
+.chart-wrap{ background:var(--card); padding:12px; border-radius:12px; }
 
-.chart-wrap{
-  background:var(--card);
-  padding:12px;
-  border-radius:12px;
-}
+/* =======================
+   Filtros + Tabela
+   ======================= */
+.filters{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.table{ background:var(--card); border-radius:12px; overflow:auto; }
+table{ width:100%; border-collapse: collapse; }
+th, td{ padding:10px; border-bottom:1px solid #26313b; font-size:13px; vertical-align:top; }
+thead th{ position:sticky; top:0; background:#12181d; }
 
-.filters{
-  display:flex;
-  gap:8px;
-  margin-bottom:12px;
-  flex-wrap:wrap;
-}
+.export{ display:flex; justify-content:flex-end; margin-top:12px; }
 
-.table{
-  background:var(--card);
-  border-radius:12px;
-  overflow:auto;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-
-th,td{
-  padding:10px;
-  border-bottom:1px solid #26313b;
-  font-size:13px;
-  vertical-align:top;
-}
-
-thead th{
-  position:sticky;
-  top:0;
-  background:#12181d;
-}
-
-.export{
-  display:flex;
-  justify-content:flex-end;
-  margin-top:12px;
-}
-
+/* =======================
+   Mobile
+   ======================= */
 @media (max-width:900px){
   .charts{ grid-template-columns:1fr; }
   .totais{ grid-template-columns:repeat(2,1fr); }
   #card{ flex-direction:column; align-items:center; }
 }
 
-/* =======================================================
-   Destaque PERMANENTE do campo "Município" e botão "BUSCAR"
-   ======================================================= */
-
-/* Campo Município sempre com borda azul clara e brilho */
-#municipio{
-  min-width:300px;
-  height:56px;
-  font-size:16px;                 /* evita zoom no iOS */
-  font-weight:600;
-  color:var(--text);
-  background:#0c1216;
-  border:2px solid var(--search-blue);   /* contorno AZUL permanente */
-  border-radius:14px;
-  box-shadow:0 0 0 3px var(--search-glow); /* brilho constante */
-  -webkit-appearance:none;
-  outline:none;
-  padding:0 14px;
+/* Safe-area (iPhone notch) */
+@supports (padding: env(safe-area-inset-top)){
+  header{ padding-top:calc(16px + env(safe-area-inset-top)); }
+  body{
+    padding-left:env(safe-area-inset-left);
+    padding-right:env(safe-area-inset-right);
+  }
 }
-#municipio::placeholder{ color:#9bb4c6; }
-#municipio:focus{
-  box-shadow:0 0 0 4px rgba(14,165,255,.38);  /* foco levemente mais forte */
-}
-
-/* Botão BUSCAR todo azul claro, permanente */
-#btnBuscar{
-  height:56px;
-  padding:0 22px;
-  font-size:16px;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:.3px;
-  background:var(--search-blue);         /* fundo AZUL permanente */
-  color:#061319;
-  border:2px solid var(--search-blue);
-  border-radius:14px;
-  box-shadow:0 8px 22px rgba(14,165,255,.35);
-  transition:transform .06s, box-shadow .2s, filter .2s;
-}
-#btnBuscar:hover{
-  filter:brightness(1.06);
-  transform:translateY(-1px);
-  box-shadow:0 10px 26px rgba(14,165,255,.42);
-}
-#btnBuscar:active{
-  transform:translateY(0);
-  box-shadow:0 6px 18px rgba(14,165,255,.22);
-}
-
-/* =======================================================
-   Overrides da foto/logo do prefeito (sem “quadro”)
-   ======================================================= */
-#fotoPrefeito{
-  background:transparent !important;
-  border:0 !important;
-}
-/* Quando cair no fallback (sua logo), não recorta */
-#fotoPrefeito[src*="icons/icon-512.png"]{
-  object-fit:contain !important;
-}
-/* (Opcional) Aumentar imagem no card:
-#fotoPrefeito{ width:260px; height:260px; border-radius:16px; }
-*/
