@@ -1,356 +1,278 @@
-// app.js — Carômetro Prefeituras (versão robusta de parsing)
-let DATA = [];              // linhas do JSON (array)
-let MAP  = new Map();       // municipioNormalizado -> {rows:[], meta:{}}
-let barChart, pieChart;
+// app.js — Carômetro Prefeituras (versão robusta)
+// Requer: Chart.js 4.x carregado no <head>, e elementos/IDs do seu index.html
 
-// ===================== Utils =====================
-const STOP = new Set(['de','da','do','das','dos','e','-']);
+(() => {
+  const ENDPOINT = 'carometro_normalizado.json';
 
-function normalizeText(s){
-  return (s || '')
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // tira acentos
-    .toLowerCase()
-    .replace(/[^\w\s-]/g,' ')     // troca pontuação por espaço
-    .replace(/\s+/g,' ')          // espaços múltiplos
-    .trim();
-}
-function slugMunicipio(s){
-  // remove palavras “stop” iniciais e finais e hífens supérfluos
-  const parts = normalizeText(s).split(' ').filter(x => x && !STOP.has(x));
-  return parts.join(' ');
-}
-function initialsFromName(name){
-  const w = normalizeText(name).split(' ').filter(x=>x && !STOP.has(x));
-  return (w[0] ? w[0][0] : 'P').toUpperCase() + (w[1] ? w[1][0].toUpperCase() : 'F');
-}
-function currency(v){
-  if (v == null || isNaN(v)) v = 0;
-  return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-}
-function toNumberFlexible(v){
-  // aceita "1.234.567,89", "1234567.89", número, ou string com "R$"
-  if (typeof v === 'number') return isFinite(v) ? v : 0;
-  if (typeof v !== 'string') return 0;
-  const clean = v.replace(/[^\d,.-]/g,'').replace(/\.(?=\d{3}\b)/g,''); // remove milhar
-  // troca última vírgula por ponto
-  const lastComma = clean.lastIndexOf(',');
-  const fixed = lastComma >= 0 ? clean.slice(0,lastComma).replace(/,/g,'') + '.' + clean.slice(lastComma+1) : clean;
-  const n = parseFloat(fixed);
-  return isFinite(n) ? n : 0;
-}
-function pick(obj, keys){
-  for (const k of keys){
-    if (obj && obj[k] != null && obj[k] !== '') return obj[k];
-  }
-  return null;
-}
+  // Utilidades ----------------------------
+  const fmtBR = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+  const byId = (id) => document.getElementById(id);
+  const setText = (id, v) => { const el = byId(id); if (el) el.textContent = v ?? ''; };
 
-// ===================== Placeholder offline =====================
-function placeholderWithInitials(name){
-  const c = document.createElement('canvas');
-  c.width = c.height = 280;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#167766';
-  ctx.fillRect(0,0,280,280);
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = 'bold 120px -apple-system, system-ui, Arial';
-  ctx.fillText(initialsFromName(name), 140, 150);
-  return c.toDataURL('image/jpeg', 0.9);
-}
+  const norm = (s='') => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
 
-// ===================== Carregamento do JSON =====================
-async function loadData(){
-  try{
-    const resp = await fetch('carometro_normalizado.json', {cache:'no-cache'});
-    DATA = await resp.json();
-  }catch(e){
-    console.error('Falha ao carregar JSON:', e);
-    DATA = [];
+  // Estado de gráficos (para destruir entre buscas)
+  let barChartInst = null;
+  let pieChartInst = null;
+
+  // DOM refs principais -------------------
+  const $municipio = byId('municipio');
+  const $btnBuscar = byId('btnBuscar');
+  const $datalist  = byId('municipios');
+  const $results   = byId('results') || document; // se não existir "results", usa document
+
+  // Carregamento inicial ------------------
+  let DB = [];
+
+  fetch(ENDPOINT)
+    .then(r => r.json())
+    .then(json => {
+      DB = Array.isArray(json) ? json : [];
+      popularDatalist(DB);
+      // Se o usuário já digitou antes (autocomplete do iOS), deixa pronto:
+      if ($municipio && $municipio.value) buscarMunicipio($municipio.value);
+    })
+    .catch(console.error);
+
+  // Preenche datalist com nomes de municípios
+  function popularDatalist(data) {
+    if (!$datalist) return;
+    $datalist.innerHTML = data
+      .map(m => `<option value="${escapeHtml(m.municipio)}"></option>`)
+      .join('');
   }
 
-  // constrói MAP por município normalizado
-  MAP.clear();
-  for (const row of DATA){
-    const muni = pick(row, ['municipio','Município','MUNICIPIO','cidade','Cidade','Municipio','Município/ES']) || '';
-    const key  = slugMunicipio(muni);
-    if (!key) continue;
-    if (!MAP.has(key)) MAP.set(key, {rows:[], meta:{}});
-    MAP.get(key).rows.push(row);
-  }
+  // Busca e render ------------------------
+  function buscarMunicipio(entrada) {
+    if (!entrada) return;
 
-  // prepara datalist
-  const dl = document.getElementById('municipios');
-  if (dl){
-    dl.innerHTML = '';
-    const seen = new Set();
-    for (const row of DATA){
-      const nome = pick(row, ['municipio','Município','MUNICIPIO','cidade','Cidade','Municipio','Município/ES']);
-      if (!nome) continue;
-      const key = normalizeText(nome);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      const opt = document.createElement('option');
-      opt.value = nome;
-      dl.appendChild(opt);
+    const alvo = norm(entrada);
+    const item = DB.find(m => norm(m.municipio) === alvo) ||
+                 DB.find(m => norm(m.municipio).includes(alvo));
+
+    if (!item) {
+      alert('Município não encontrado.');
+      return;
+    }
+
+    // 1) Cabeçalho (nome + foto)
+    const foto = byId('fotoPrefeito');
+    if (foto) {
+      const src = item.foto_asset ? item.foto_asset : 'icons/icon-512.png';
+      foto.src = src;
+      foto.onload = () => (foto.style.display = '');
+      foto.onerror = () => { foto.src = 'icons/icon-512.png'; foto.style.display = ''; };
+    }
+
+    const nome = item?.prefeito?.nome || 'Prefeito(a)';
+    setText('nomePrefeito', `${nome} — ${item.municipio}`);
+
+    // 2) Dados do prefeito/contatos
+    setText('partido',   item?.prefeito?.partido || '');
+    setText('mandato',   item?.prefeito?.mandato || '');
+    setText('vice',      item?.prefeito?.vice || '');
+
+    // Mapeamento de contatos conforme JSON
+    const emailPref = item?.prefeito?.contatos?.email_prefeitura || '';
+    const emailPers = item?.prefeito?.contatos?.email_pessoal    || '';
+    const celular   = item?.prefeito?.contatos?.celular          || '';
+
+    // Seu HTML tem campos "gabinete" e "prefeitura": usamos e-mail pessoal como "Gabinete" e
+    // e-mail institucional como "Prefeitura". Ajuste se desejar outro texto.
+    setText('gabinete',   emailPers);
+    setText('prefeitura', emailPref);
+    setText('email',      emailPref || emailPers);
+    setText('celular',    celular);
+
+    // 3) Totais
+    const T = item?.totais || {};
+    const vDest = num(T.destinado);
+    const vEmp  = num(T.empenhado);
+    const vPago = num(T.pago);
+    const vSaldo= num(T.saldo ?? (vDest - vPago)); // fallback simples
+
+    setText('tDestinado', fmtBR.format(vDest));
+    setText('tEmpenhado', fmtBR.format(vEmp));
+    setText('tPago',      fmtBR.format(vPago));
+    setText('tSaldo',     fmtBR.format(vSaldo));
+
+    // 4) Gráficos
+    const rep = Array.isArray(item.repasses) ? item.repasses : [];
+
+    // Macro-área: usa "totais_macroarea" se existir; senão soma pelos repasses
+    const macroAgg = item.totais_macroarea
+      ? item.totais_macroarea
+      : aggregateMacroArea(rep);
+
+    desenharBarChart(macroAgg);
+
+    // Situação: soma por situação usando valor "mais realista" (pago > empenhado > emenda)
+    const situAgg = aggregateSituacao(rep);
+    desenharPieChart(situAgg);
+
+    // 5) Filtros + Tabela
+    montarFiltros(rep);
+    renderTabela(rep);
+
+    // Revela a área de resultados, se existir
+    if ($results && $results.id === 'results') {
+      $results.hidden = false;
+      setTimeout(() => $results.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
     }
   }
-}
 
-// ===================== Preencher tela =====================
-function fillHeaderAndContacts(meta, rows){
-  // tenta extrair nome do prefeito, partido etc. de diferentes formatos
-  // nome do prefeito:
-  let nomePref = pick(meta, ['prefeito','Prefeito','NOME','Nome']);
-  if (nomePref && typeof nomePref === 'object'){
-    nomePref = pick(nomePref, ['nome','Nome','nome_completo','completo']);
+  // Filtros --------------------------------
+  function montarFiltros(repasses) {
+    const anos = [...new Set(repasses.map(r => r.ano).filter(Boolean))].sort((a,b)=>a-b);
+    const tipos = uniqueSorted(repasses.map(r => r.tipo).filter(Boolean));
+    const sits  = uniqueSorted(repasses.map(r => r.situacao || 'SEM-INFO'));
+
+    fillSelect('fAno',  ['Ano (todos)', ...anos], [''].concat(anos));
+    fillSelect('fTipo', ['Tipo (todos)', ...tipos], [''].concat(tipos));
+    fillSelect('fSit',  ['Situação (todas)', ...sits], [''].concat(sits));
+
+    ['fAno','fTipo','fSit'].forEach(id => {
+      const sel = byId(id);
+      if (!sel) return;
+      sel.onchange = () => {
+        const filtrado = filtraRepasses(repasses);
+        renderTabela(filtrado);
+        desenharBarChart(aggregateMacroArea(filtrado));
+        desenharPieChart(aggregateSituacao(filtrado));
+      };
+    });
   }
-  if (!nomePref){
-    // procura na primeira linha algo como row.prefeito.nome
-    const r0 = rows && rows[0] || {};
-    const cand = pick(r0, ['prefeito','Prefeito']);
-    nomePref = (typeof cand === 'object') ? pick(cand, ['nome','Nome','nome_completo']) : cand;
-  }
 
-  const municipio = pick(meta, ['municipio','Município','Municipio','cidade','Cidade','Município/ES']) ||
-                    pick(rows?.[0], ['municipio','Município','Municipio','cidade','Cidade','Município/ES']) || '';
+  function filtraRepasses(repasses) {
+    const ano = byId('fAno')?.value || '';
+    const tipo= byId('fTipo')?.value || '';
+    const sit = byId('fSit')?.value || '';
 
-  // contatos/labels
-  const partido   = pick(meta, ['partido','Partido','sigla_partido','SIGLA_PARTIDO']) ||
-                    pick(rows?.[0], ['partido','Partido','sigla_partido','SIGLA_PARTIDO']) || '';
-  const mandato   = pick(meta, ['mandato','Mandato','periodo','Período']) ||
-                    pick(rows?.[0], ['mandato','Mandato','periodo','Período']) || '';
-  const vice      = pick(meta, ['vice','Vice','vice_prefeito','Vice-Prefeito','Vice Prefeito']) ||
-                    pick(rows?.[0], ['vice','Vice','vice_prefeito','Vice-Prefeito','Vice Prefeito']) || '';
-  const gabinete  = pick(meta, ['gabinete','Gabinete']) ||
-                    pick(rows?.[0], ['gabinete','Gabinete']) || '';
-  const prefeitura= pick(meta, ['prefeitura','Prefeitura']) ||
-                    pick(rows?.[0], ['prefeitura','Prefeitura']) || '';
-  const email     = pick(meta, ['email','Email','e-mail','E-mail']) ||
-                    pick(rows?.[0], ['email','Email','e-mail','E-mail']) || '';
-  const celular   = pick(meta, ['celular','Celular','telefone','Telefone']) ||
-                    pick(rows?.[0], ['celular','Celular','telefone','Telefone']) || '';
-
-  // DOM
-  const nomeEl = document.getElementById('nomePrefeito');
-  if (nomeEl) nomeEl.textContent = `${nomePref || ''} — ${municipio || ''}`;
-
-  const partidoEl = document.getElementById('partido');
-  const mandatoEl = document.getElementById('mandato');
-  const viceEl    = document.getElementById('vice');
-  const gabEl     = document.getElementById('gabinete');
-  const prefEl    = document.getElementById('prefeitura');
-  const emailEl   = document.getElementById('email');
-  const celEl     = document.getElementById('celular');
-
-  if (partidoEl) partidoEl.textContent = partido || '';
-  if (mandatoEl) mandatoEl.textContent = mandato || '';
-  if (viceEl)    viceEl.textContent    = vice || '';
-  if (gabEl)     gabEl.textContent     = gabinete || '';
-  if (prefEl)    prefEl.textContent    = prefeitura || '';
-  if (emailEl)   emailEl.textContent   = email || '';
-  if (celEl)     celEl.textContent     = celular || '';
-}
-
-function choosePhotoAsset(muniKey, municipioVisivel, meta){
-  // se existir meta.foto_asset, usa; senão tenta "prefeitos/{slug}.jpg"
-  if (meta && typeof meta.foto_asset === 'string') return meta.foto_asset;
-
-  // monta slug de arquivo: ex.: "vila-velha.jpg"
-  const fileSlug = municipioVisivel
-    ? normalizeText(municipioVisivel).replace(/\s+/g,'-')
-    : muniKey.replace(/\s+/g,'-');
-
-  return `prefeitos/${fileSlug}.jpg`;
-}
-
-function aggregateValues(rows){
-  // soma procurando por nomes de chave comuns
-  let destinado = 0, empenhado = 0, pago = 0;
-
-  for (const r of rows){
-    for (const [k, v] of Object.entries(r)){
-      const key = normalizeText(k);
-      const n   = toNumberFlexible(v);
-      if (!n) continue;
-
-      if (/(destinad|emenda|valor[\s_]*total|valor$)/.test(key)){
-        destinado += n;
-      }else if (/(empenh)/.test(key)){
-        empenhado += n;
-      }else if (/(pago|liquidado)/.test(key)){
-        pago += n;
-      }
-    }
-  }
-  const saldo = Math.max(0, destinado - pago);
-  return { destinado, empenhado, pago, saldo };
-}
-
-function fillTotals({destinado, empenhado, pago, saldo}){
-  const tD = document.getElementById('tDestinado');
-  const tE = document.getElementById('tEmpenhado');
-  const tP = document.getElementById('tPago');
-  const tS = document.getElementById('tSaldo');
-  if (tD) tD.textContent = currency(destinado);
-  if (tE) tE.textContent = currency(empenhado);
-  if (tP) tP.textContent = currency(pago);
-  if (tS) tS.textContent = currency(saldo);
-}
-
-function buildTable(rows){
-  const tb = document.getElementById('tbody');
-  if (!tb) return;
-  tb.innerHTML = '';
-
-  // cria algumas linhas (limit 100 para não pesar)
-  const LIM = Math.min(100, rows.length);
-  for (let i=0;i<LIM;i++){
-    const r = rows[i] || {};
-    const ano   = pick(r,['ano','Ano','exercicio','Exercício','Exercicio']) || '';
-    const tipo  = pick(r,['tipo','Tipo','modalidade','Modalidade']) || '';
-    const area  = pick(r,['area','Área','Area']) || '';
-    const benef = pick(r,['beneficiario','Beneficiário','Beneficiario','entidade','Entidade']) || '';
-    const obj   = pick(r,['objeto','Objeto','descricao','Descrição']) || '';
-    const sit   = pick(r,['situacao','Situação','status','Status']) || '';
-    // números
-    const vEmenda   = toNumberFlexible(pick(r,[
-      'valor_emenda','valorEmenda','Valor Emenda','valor','Valor','destinado','Destinado'
-    ]));
-    const vEmp      = toNumberFlexible(pick(r,[
-      'empenhado','Empenhado','valor_empenhado','valorEmpenhado'
-    ]));
-    const vPago     = toNumberFlexible(pick(r,[
-      'pago','Pago','valor_pago','valorPago','liquidado','Liquidado'
-    ]));
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${ano}</td>
-      <td>${tipo}</td>
-      <td>${area}</td>
-      <td>${benef}</td>
-      <td>${obj}</td>
-      <td>${sit}</td>
-      <td>${currency(vEmenda)}</td>
-      <td>${currency(vEmp)}</td>
-      <td>${currency(vPago)}</td>
-    `;
-    tb.appendChild(tr);
-  }
-}
-
-function drawCharts(rows){
-  // agrega por área e por situação
-  const byArea = new Map();
-  const bySit  = new Map();
-
-  for (const r of rows){
-    const area = normalizeText(pick(r,['area','Área','Area'])) || 'outras';
-    const sit  = normalizeText(pick(r,['situacao','Situação','status','Status'])) || 'sem-info';
-    const val  = toNumberFlexible(
-      pick(r,['valor_emenda','valor','destinado','Valor Emenda','Destinado'])
+    return repasses.filter(r =>
+      (ano  ? String(r.ano) === String(ano) : true) &&
+      (tipo ? r.tipo === tipo : true) &&
+      (sit  ? (r.situacao || 'SEM-INFO') === sit : true)
     );
-
-    byArea.set(area, (byArea.get(area) || 0) + val);
-    bySit.set(sit,   (bySit.get(sit)   || 0) + val);
   }
 
-  // Bar
-  const bctx = document.getElementById('barChart');
-  const pctx = document.getElementById('pieChart');
-  if (!bctx || !pctx) return;
+  function fillSelect(id, labels, values) {
+    const sel = byId(id);
+    if (!sel) return;
+    sel.innerHTML = labels.map((lab,i) => `<option value="${escapeHtml(String(values[i]))}">${escapeHtml(String(lab))}</option>`).join('');
+  }
 
-  const barLabels = Array.from(byArea.keys()).map(s => s.toUpperCase());
-  const barData   = Array.from(byArea.values());
+  // Tabela ---------------------------------
+  function renderTabela(repasses) {
+    const tbody = byId('tbody');
+    if (!tbody) return;
 
-  if (barChart) barChart.destroy();
-  barChart = new Chart(bctx, {
-    type:'bar',
-    data:{ labels: barLabels, datasets:[{ label:'R$ por Macro-área', data: barData }] },
-    options:{ responsive:true, plugins:{legend:{display:false}} }
+    tbody.innerHTML = repasses.map(r => {
+      const emenda = num(r.valor_emenda);
+      const empenh = num(r.valor_empenhado);
+      const pago   = num(r.valor_pago);
+
+      return `
+        <tr>
+          <td>${escapeHtml(r.ano ?? '')}</td>
+          <td>${escapeHtml(r.tipo ?? '')}</td>
+          <td>${escapeHtml(r.macro_area ?? r.area ?? '')}</td>
+          <td>${escapeHtml(r.beneficiario ?? '')}</td>
+          <td>${escapeHtml(r.objeto ?? '')}</td>
+          <td>${escapeHtml(r.situacao ?? 'SEM-INFO')}</td>
+          <td>${fmtBR.format(emenda)}</td>
+          <td>${fmtBR.format(empenh)}</td>
+          <td>${fmtBR.format(pago)}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  // Agregações -----------------------------
+  function aggregateMacroArea(repasses) {
+    const map = new Map();
+    for (const r of repasses) {
+      const key = r.macro_area || 'Outras';
+      const v = num(r.valor_pago ?? r.valor_empenhado ?? r.valor_emenda);
+      map.set(key, (map.get(key) || 0) + v);
+    }
+    return Object.fromEntries(map);
+  }
+
+  function aggregateSituacao(repasses) {
+    const map = new Map();
+    for (const r of repasses) {
+      const key = (r.situacao || 'SEM-INFO').toUpperCase();
+      const v = num(r.valor_pago ?? r.valor_empenhado ?? r.valor_emenda);
+      map.set(key, (map.get(key) || 0) + v);
+    }
+    return Object.fromEntries(map);
+  }
+
+  // Charts ---------------------------------
+  function desenharBarChart(macroAgg) {
+    const ctx = byId('barChart');
+    if (!ctx) return;
+
+    const labels = Object.keys(macroAgg);
+    const data   = labels.map(k => macroAgg[k]);
+
+    if (barChartInst) barChartInst.destroy();
+    barChartInst = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{ label: 'Por Macro-área', data }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { ticks: { callback: v => fmtBR.format(v) } }
+        }
+      }
+    });
+  }
+
+  function desenharPieChart(situAgg) {
+    const ctx = byId('pieChart');
+    if (!ctx) return;
+
+    const labels = Object.keys(situAgg);
+    const data   = labels.map(k => situAgg[k]);
+
+    if (pieChartInst) pieChartInst.destroy();
+    pieChartInst = new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data }] },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'right' } },
+        cutout: '55%'
+      }
+    });
+  }
+
+  // Eventos --------------------------------
+  $btnBuscar?.addEventListener('click', () => buscarMunicipio($municipio?.value));
+  $municipio?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') buscarMunicipio($municipio.value);
   });
 
-  // Pie
-  const pieLabels = Array.from(bySit.keys()).map(s => s.toUpperCase());
-  const pieData   = Array.from(bySit.values());
-
-  if (pieChart) pieChart.destroy();
-  pieChart = new Chart(pctx, {
-    type:'pie',
-    data:{ labels: pieLabels, datasets:[{ data: pieData }] },
-    options:{ responsive:true }
-  });
-}
-
-// ===================== Busca principal =====================
-async function buscarMunicipio(){
-  const input = document.getElementById('municipio');
-  const municipio = (input?.value || '').trim();
-  if (!municipio) return;
-
-  const key = slugMunicipio(municipio);
-  const pack = MAP.get(key);
-
-  const results = document.getElementById('results');
-  if (results) results.hidden = false; // garante visível
-
-  // Foto do prefeito
-  const img = document.getElementById('fotoPrefeito');
-  if (img){
-    const asset = choosePhotoAsset(key, municipio, pack?.meta || {});
-    img.style.display = '';
-    img.onerror = () => {
-      img.src = 'icons/icon-512.png'; // sua arte azul como fallback
-      img.style.display = '';
-      img.style.objectFit = 'contain';
-    };
-    img.src = asset;
+  // Helpers --------------------------------
+  function num(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
   }
 
-  if (!pack){
-    // não encontrou: zera e sai
-    fillHeaderAndContacts({ municipio }, []);
-    fillTotals({destinado:0, empenhado:0, pago:0, saldo:0});
-    buildTable([]);
-    drawCharts([]);
-    return;
+  function uniqueSorted(arr) {
+    return [...new Set(arr.filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b), 'pt-BR'));
   }
 
-  // header/contatos
-  fillHeaderAndContacts({ municipio, ...(pack.meta||{}) }, pack.rows);
-
-  // totais
-  const totals = aggregateValues(pack.rows);
-  fillTotals(totals);
-
-  // tabela
-  buildTable(pack.rows);
-
-  // gráficos
-  drawCharts(pack.rows);
-
-  // rola para os resultados
-  setTimeout(()=>document.getElementById('card')?.scrollIntoView({behavior:'smooth'}), 60);
-}
-
-// ===================== Boot =====================
-document.addEventListener('DOMContentLoaded', async () => {
-  await loadData();
-
-  // eventos do campo/botão
-  const btn = document.getElementById('btnBuscar');
-  const input = document.getElementById('municipio');
-
-  btn?.addEventListener('click', buscarMunicipio);
-  input?.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') buscarMunicipio(); });
-
-  // se já houver valor (ex.: veio por histórico), busca
-  if ((input?.value || '').trim()) buscarMunicipio();
-
-  // registra o service worker se existir
-  if ('serviceWorker' in navigator){
-    try{ navigator.serviceWorker.register('service-worker.js'); }catch(e){}
+  function escapeHtml(s='') {
+    return String(s)
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'","&#39;");
   }
-});
+})();
